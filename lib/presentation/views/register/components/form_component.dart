@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:form_without_connection/constants/color_manager.dart';
 import 'package:form_without_connection/constants/strings_manager.dart';
 import 'package:form_without_connection/constants/values_manager.dart';
+import 'package:form_without_connection/presentation/hooks/use_launch_effect.dart';
 import 'package:form_without_connection/presentation/views/register/register_view_model/register_view_model.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -18,12 +19,30 @@ class FormComponent extends HookConsumerWidget {
     right: AppPadding.p28,
   );
 
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userNameController = useTextEditingController();
     final emailNameController = useTextEditingController();
     final passwordController = useTextEditingController();
     final mobileNumberController = useTextEditingController();
+    useLaunchEffect(() async {
+      await ref.read(registerViewModelProvider.notifier).setForm();
+      final (userName, email, password, mobileNumber) = ref.read(
+        registerViewModelProvider.select(
+          (value) => (
+            value.userName,
+            value.email,
+            value.password,
+            value.mobileNumber,
+          ),
+        ),
+      );
+      userNameController.text = userName;
+      emailNameController.text = email;
+      passwordController.text = password;
+      mobileNumberController.text = mobileNumber;
+    });
 
     final (
       emailValid,
@@ -31,6 +50,7 @@ class FormComponent extends HookConsumerWidget {
       passwordValid,
       mobileNumberValid,
       allInputsValid,
+      countryCode,
     ) = ref.watch(
       registerViewModelProvider.select(
         (value) => (
@@ -39,6 +59,7 @@ class FormComponent extends HookConsumerWidget {
           value.isPasswordValid,
           value.isMobileNumberValid,
           value.isAllInputsValid,
+          value.countryMobileCode,
         ),
       ),
     );
@@ -48,6 +69,7 @@ class FormComponent extends HookConsumerWidget {
         Padding(
           padding: padding,
           child: TextFormField(
+            autofocus: true,
             controller: userNameController,
             onChanged: ref.read(registerViewModelProvider.notifier).onUserNameChanged,
             decoration: InputDecoration(
@@ -80,7 +102,7 @@ class FormComponent extends HookConsumerWidget {
                         .onCountryMobileCodeChanged(country.dialCode ?? '+52');
                   },
                   padding: EdgeInsets.zero,
-                  initialSelection: "+52",
+                  initialSelection: countryCode,
                   showCountryOnly: true,
                   hideMainText: true,
                   showOnlyCountryWhenClosed: true,
@@ -144,11 +166,20 @@ class FormComponent extends HookConsumerWidget {
             child: ElevatedButton(
               onPressed: (allInputsValid)
                   ? () {
+                      final focusScope = FocusScope.of(context);
+                      if (!focusScope.hasPrimaryFocus && focusScope.hasFocus) {
+                        focusScope.unfocus();
+                      }
                       ref.read(registerViewModelProvider.notifier).onRegister(
-                            onDone: () {
-                              // ref.read(registerViewModelProvider.notifier).retryAction();
-                            },
-                          );
+                        onDone: () {
+                          // ref.read(registerViewModelProvider.notifier).retryAction();
+                          // clean the form
+                          userNameController.clear();
+                          emailNameController.clear();
+                          passwordController.clear();
+                          mobileNumberController.clear();
+                        },
+                      );
                     }
                   : null,
               child: Text(

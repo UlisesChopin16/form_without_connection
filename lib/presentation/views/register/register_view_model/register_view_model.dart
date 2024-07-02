@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:form_without_connection/app/app_preferences.dart';
 import 'package:form_without_connection/app/dep_inject.dart';
+import 'package:form_without_connection/data/request/register_request.dart';
 import 'package:form_without_connection/domain/use_cases/register_use_case.dart';
 import 'package:form_without_connection/presentation/common/state_render_impl.dart';
 import 'package:form_without_connection/presentation/common/state_renderer.dart';
@@ -15,9 +16,9 @@ part 'register_view_model.g.dart';
 @freezed
 class RegisterModel with _$RegisterModel {
   const RegisterModel._();
-  
+
   const factory RegisterModel({
-    @Default('') String countryMobileCode,
+    @Default('+52') String countryMobileCode,
     @Default('') String userName,
     @Default('') String email,
     @Default('') String password,
@@ -31,8 +32,8 @@ class RegisterModel with _$RegisterModel {
     @Default(null) FlowState? flowState,
   }) = _RegisterModel;
 
-  RegisterUseCaseInput toRequest() {
-    return RegisterUseCaseInput(
+  RegisterRequest toRequest() {
+    return RegisterRequest(
       email: email,
       password: password,
       countryMobileCode: countryMobileCode.isEmpty ? '+52' : countryMobileCode.trim(),
@@ -60,6 +61,7 @@ class RegisterViewModel extends _$RegisterViewModel implements RegisterViewModel
       countryMobileCode: countryMobileCode.trim(),
     );
     _validate();
+    saveForm();
   }
 
   @override
@@ -68,6 +70,7 @@ class RegisterViewModel extends _$RegisterViewModel implements RegisterViewModel
       userName: userName.trim(),
       isUserNameValid: Validations.isUserNameValid(userName),
     );
+    saveForm();
     _validate();
   }
 
@@ -78,6 +81,7 @@ class RegisterViewModel extends _$RegisterViewModel implements RegisterViewModel
       isEmailValid: Validations.isEmailValid(email),
     );
     _validate();
+    saveForm();
   }
 
   @override
@@ -87,6 +91,7 @@ class RegisterViewModel extends _$RegisterViewModel implements RegisterViewModel
       isPasswordValid: Validations.isPasswordValid(password),
     );
     _validate();
+    saveForm();
   }
 
   @override
@@ -96,6 +101,7 @@ class RegisterViewModel extends _$RegisterViewModel implements RegisterViewModel
       isMobileNumberValid: Validations.isMobileNumberValid(mobileNumber),
     );
     _validate();
+    saveForm();
   }
 
   @override
@@ -103,6 +109,35 @@ class RegisterViewModel extends _$RegisterViewModel implements RegisterViewModel
     state = state.copyWith(
       profilePicture: profilePicture,
     );
+    saveForm();
+  }
+
+  @override
+  void saveForm() async {
+    String form = state.toRequest().toEncodedJson();
+    print('form: $form');
+    await _appPreferences.setFormBeforeSend(form);
+  }
+
+  @override
+  Future<void> setForm() async {
+    final form = await _appPreferences.getFormBeforeSend();
+
+    if (form.isEmpty) {
+      return;
+    }
+
+    final data = RegisterRequest.fromEncodedJson(form);
+
+    state = state.copyWith(
+      countryMobileCode: data.countryMobileCode ?? '',
+      userName: data.userName ?? '',
+      email: data.email ?? '',
+      password: data.password ?? '',
+      mobileNumber: data.mobileNumber ?? '',
+      profilePicture: data.profilePicture ?? '',
+    );
+    _validate();
   }
 
   @override
@@ -129,7 +164,10 @@ class RegisterViewModel extends _$RegisterViewModel implements RegisterViewModel
             stateRendererType: StateRendererType.POPUP_SUCCESS,
             message: registerResponseModel.message,
           ),
+          countryMobileCode: '+52',
+          profilePicture: '',
         );
+        _appPreferences.clearFormBeforeSend();
         onDone();
       },
     );
@@ -176,4 +214,6 @@ abstract class RegisterViewModelInputs {
   void onChooseProfilePicture(String profilePicture);
   void onRegister({required VoidCallback onDone});
   void retryAction();
+  void saveForm();
+  Future<void> setForm();
 }

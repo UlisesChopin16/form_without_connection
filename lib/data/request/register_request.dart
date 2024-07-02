@@ -13,7 +13,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:form_without_connection/domain/use_cases/register_use_case.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:http_parser/http_parser.dart';
 
@@ -34,14 +33,6 @@ class RegisterRequest with _$RegisterRequest {
   }) = _RegisterRequest;
 
   factory RegisterRequest.fromJson(Map<String, dynamic> json) => _$RegisterRequestFromJson(json);
-  factory RegisterRequest.fromRegisterUseCaseInput(RegisterUseCaseInput input) => RegisterRequest(
-        email: input.email,
-        countryMobileCode: input.countryMobileCode,
-        userName: input.userName,
-        password: input.password,
-        mobileNumber: input.mobileNumber,
-        profilePicture: input.profilePicture,
-      );
 
   factory RegisterRequest.fromEncodedJson(String jsonEn) {
     return RegisterRequest.fromJson(json.decode(jsonEn) as Map<String, dynamic>);
