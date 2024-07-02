@@ -10,9 +10,14 @@ abstract class AppApi {
 
   factory AppApi(Dio dio) = _AppApi;
 
-  @MultiPart()
+  
   @POST(register)
   Future<RegisterResponse> registerCustomer(
-    @Part() Map<String, dynamic> body,
+    @Body() Map<String, dynamic> body,
   );
+  // @MultiPart()
+  // @POST(register)
+  // Future<RegisterResponse> registerCustomer(
+  //   @Part() Map<String, dynamic> body,
+  // );
 }

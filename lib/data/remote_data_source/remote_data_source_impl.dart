@@ -11,9 +11,15 @@ class RemoteDataSourceImpl implements RemoteDataSource {
   );
 
   
+  // @override
+  // Future<RegisterResponse> registerCustomerRDS(RegisterRequest registerRequest) async {
+  //   final response = await appApi.registerCustomer(registerRequest.toJsonWithImage());
+  //   return response;
+  // }
+
   @override
   Future<RegisterResponse> registerCustomerRDS(RegisterRequest registerRequest) async {
-    final response = await appApi.registerCustomer(registerRequest.toJsonWithImage());
+    final response = await appApi.registerCustomer(registerRequest.toJson());
     return response;
   }
 }

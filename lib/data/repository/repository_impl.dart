@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:form_without_connection/app/app_preferences.dart';
 import 'package:form_without_connection/data/mapper/register_response_mapper.dart';
 import 'package:form_without_connection/data/network/error_handler.dart';
 import 'package:form_without_connection/data/network/failures/failure.dart';
@@ -11,10 +12,12 @@ import 'package:form_without_connection/domain/models/register_response_model.da
 class RepositoryImpl implements Repository {
   final RemoteDataSource remoteDataSource;
   final NetworkInfo networkInfo;
+  final AppPreferences appPreferences;
 
   const RepositoryImpl(
     this.remoteDataSource,
     this.networkInfo,
+    this.appPreferences,
   );
 
   @override
@@ -24,12 +27,18 @@ class RepositoryImpl implements Repository {
       final bool isConnected = await networkInfo.isConnected;
       if (!isConnected) {
         // return connection error
-        return const Left(
-          Failure(
-            code: 408,
-            message: 'No internet connection, please try again later.',
+        await checkForFormList(registerRequest);
+        return Right(
+          RegisterResponseModel(
+            status: 200,
+            message: 'Form saved successfully, it will be sent when the connection is restored.',
           ),
         );
+      } 
+
+      List<String> formList = await appPreferences.getListFormWithoutWifi();
+      if (formList.isNotEmpty) {
+        await sendForms();
       }
 
       final response = await remoteDataSource.registerCustomerRDS(registerRequest);
@@ -48,6 +57,32 @@ class RepositoryImpl implements Repository {
       return Left(
         ErrorHandler.handle(e).failure,
       );
+    }
+  }
+
+  Future<void> checkForFormList(RegisterRequest registerRequest) async {
+    // check for form list
+    List<String> formList = await appPreferences.getListFormWithoutWifi();
+
+    // return error
+    String form = registerRequest.toEncodedJson();
+    formList.add(form);
+    await appPreferences.saveListFormWithoutWifi(formList);
+  }
+
+  Future<void> sendForms() async {
+    // check for form list
+    List<String> formList = await appPreferences.getListFormWithoutWifi();
+
+    await appPreferences.clearListFormWithoutWifi();
+    
+    // if form list is empty do nothing
+    if (formList.isEmpty) return;
+
+    // send forms
+    for (String form in formList) {
+      final registerRequest = RegisterRequest.fromEncodedJson(form);
+      await registerCustomerRepository(registerRequest);
     }
   }
 }

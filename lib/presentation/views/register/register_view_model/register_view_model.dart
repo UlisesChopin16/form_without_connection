@@ -130,7 +130,6 @@ class RegisterViewModel extends _$RegisterViewModel implements RegisterViewModel
             message: registerResponseModel.message,
           ),
         );
-        _appPreferences.setIsUserLoggedIn();
         onDone();
       },
     );

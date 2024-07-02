@@ -7,6 +7,8 @@ const String PREFS_KEY_LANG = "PREFS_KEY_LANG";
 const String PREFS_KEY_ONBOARDING_SCREEN = "PREFS_KEY_ONBOARDING_SCREEN";
 const String PREFS_KEY_IS_USER_LOGGED_IN = "PREFS_KEY_IS_USER_LOGGED_IN";
 const String PREFS_KEY_TOKEN = "PREFS_KEY_TOKEN";
+const String PREFS_KEY_FORM_DATA = "PREFS_KEY_FORM_DATA";
+const String PREFS_KEY_FORM_DATA_LIST = "PREFS_KEY_FORM_DATA_LIST";
 
 class AppPreferences {
   final SharedPreferences _sharedPreferences;
@@ -40,14 +42,6 @@ class AppPreferences {
     return SPANISH_LOCAL;
   }
 
-  Future<void> setOnBoardingScreenViewed() async {
-    await _sharedPreferences.setBool(PREFS_KEY_ONBOARDING_SCREEN, true);
-  }
-
-  bool isOnBoardingScreenViewed() {
-    return _sharedPreferences.getBool(PREFS_KEY_ONBOARDING_SCREEN) ?? false;
-  }
-
   Future<void> setUserToken(String token) async {
     _sharedPreferences.setString(PREFS_KEY_TOKEN, token);
   }
@@ -56,16 +50,30 @@ class AppPreferences {
     return _sharedPreferences.getString(PREFS_KEY_TOKEN) ?? "";
   }
 
-  Future<void> setIsUserLoggedIn() async {
-    await _sharedPreferences.setBool(PREFS_KEY_IS_USER_LOGGED_IN, true);
+
+  Future<void> setFormBeforeSend(String form) async {
+    await _sharedPreferences.setString(PREFS_KEY_FORM_DATA, form);
   }
 
-  bool isUserLoggedIn() {
-    return _sharedPreferences.getBool(PREFS_KEY_IS_USER_LOGGED_IN) ?? false;
+  Future<String> getFormBeforeSend() async {
+    return _sharedPreferences.getString(PREFS_KEY_FORM_DATA) ?? "";
   }
 
-  Future<void> logout() async {
-    await _sharedPreferences.remove(PREFS_KEY_IS_USER_LOGGED_IN);
-    await _sharedPreferences.remove(PREFS_KEY_TOKEN);
+  Future<void> clearFormBeforeSend() async {
+    await _sharedPreferences.remove(PREFS_KEY_FORM_DATA);
+  }
+
+
+
+  Future<void> saveListFormWithoutWifi(List<String> list) async {
+    await _sharedPreferences.setStringList(PREFS_KEY_FORM_DATA_LIST, list);
+  }
+
+  Future<List<String>> getListFormWithoutWifi() async {
+    return _sharedPreferences.getStringList(PREFS_KEY_FORM_DATA_LIST) ?? [];
+  }
+
+  Future<void> clearListFormWithoutWifi() async {
+    await _sharedPreferences.remove(PREFS_KEY_FORM_DATA_LIST);
   }
 }

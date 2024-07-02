@@ -9,6 +9,7 @@
 //   };
 // }
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -42,6 +43,10 @@ class RegisterRequest with _$RegisterRequest {
         profilePicture: input.profilePicture,
       );
 
+  factory RegisterRequest.fromEncodedJson(String jsonEn) {
+    return RegisterRequest.fromJson(json.decode(jsonEn) as Map<String, dynamic>);
+  }
+
   Map<String, dynamic> toJsonWithImage() {
     final map = toJson();
     final fileImage = File(profilePicture!);
@@ -56,5 +61,9 @@ class RegisterRequest with _$RegisterRequest {
     );
 
     return map;
+  }
+
+  String toEncodedJson() {
+    return json.encode(toJson());
   }
 }
