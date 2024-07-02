@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:form_without_connection/app/app_preferences.dart';
 import 'package:form_without_connection/app/dep_inject.dart';
@@ -16,13 +14,15 @@ part 'register_view_model.g.dart';
 
 @freezed
 class RegisterModel with _$RegisterModel {
+  const RegisterModel._();
+  
   const factory RegisterModel({
     @Default('') String countryMobileCode,
     @Default('') String userName,
     @Default('') String email,
     @Default('') String password,
     @Default('') String mobileNumber,
-    @Default(null) File? profilePicture,
+    @Default('') String profilePicture,
     @Default(true) bool isUserNameValid,
     @Default(true) bool isEmailValid,
     @Default(true) bool isPasswordValid,
@@ -30,6 +30,17 @@ class RegisterModel with _$RegisterModel {
     @Default(false) bool isAllInputsValid,
     @Default(null) FlowState? flowState,
   }) = _RegisterModel;
+
+  RegisterUseCaseInput toRequest() {
+    return RegisterUseCaseInput(
+      email: email,
+      password: password,
+      countryMobileCode: countryMobileCode.isEmpty ? '+52' : countryMobileCode.trim(),
+      userName: userName,
+      mobileNumber: mobileNumber,
+      profilePicture: profilePicture,
+    );
+  }
 }
 
 @riverpod
@@ -88,7 +99,7 @@ class RegisterViewModel extends _$RegisterViewModel implements RegisterViewModel
   }
 
   @override
-  void onChooseProfilePicture(File profilePicture) {
+  void onChooseProfilePicture(String profilePicture) {
     state = state.copyWith(
       profilePicture: profilePicture,
     );
@@ -101,16 +112,7 @@ class RegisterViewModel extends _$RegisterViewModel implements RegisterViewModel
         stateRendererType: StateRendererType.POPUP_LOADING_STATE,
       ),
     );
-    final response = await _registerUseCase.execute(
-      RegisterUseCaseInput(
-        email: state.email,
-        password: state.password,
-        countryMobileCode: state.countryMobileCode.isEmpty ? '+52' : state.countryMobileCode.trim(),
-        userName: state.userName,
-        mobileNumber: state.mobileNumber,
-        profilePicture: '',
-      ),
-    );
+    final response = await _registerUseCase.execute(state.toRequest());
 
     response.fold(
       (failure) {
@@ -157,12 +159,12 @@ class RegisterViewModel extends _$RegisterViewModel implements RegisterViewModel
 
   Future<void> imageFromGallery() async {
     var image = await _picker.pickImage(source: ImageSource.gallery);
-    onChooseProfilePicture(File(image?.path ?? ""));
+    onChooseProfilePicture(image?.path ?? '');
   }
 
   Future<void> imageFromCamera() async {
     var image = await _picker.pickImage(source: ImageSource.camera);
-    onChooseProfilePicture(File(image?.path ?? ""));
+    onChooseProfilePicture(image?.path ?? '');
   }
 }
 
@@ -172,7 +174,7 @@ abstract class RegisterViewModelInputs {
   void onEmailChanged(String email);
   void onPasswordChanged(String password);
   void onMobileNumberChanged(String mobileNumber);
-  void onChooseProfilePicture(File profilePicture);
+  void onChooseProfilePicture(String profilePicture);
   void onRegister({required VoidCallback onDone});
   void retryAction();
 }

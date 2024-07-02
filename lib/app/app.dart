@@ -4,12 +4,10 @@ import 'package:form_without_connection/app/app_preferences.dart';
 import 'package:form_without_connection/app/dep_inject.dart';
 import 'package:form_without_connection/constants/theme_manager.dart';
 import 'package:form_without_connection/presentation/routes/routes_manager.dart';
-import 'package:form_without_connection/presentation/views/register/register_view.dart';
 import 'package:go_router/go_router.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
-
 
   @override
   State<MyApp> createState() => _MyAppState();

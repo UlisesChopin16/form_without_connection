@@ -1,4 +1,6 @@
 
+import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -71,8 +73,8 @@ class ViewRegister extends HookConsumerWidget {
                       child: CircleAvatar(
                           radius: AppSize.s100,
                           backgroundColor: ColorManager.lightGrey2,
-                          backgroundImage: image == null ? null : FileImage(image),
-                          child: image == null
+                          backgroundImage: image.isEmpty ? null : FileImage(File(image)),
+                          child: image.isEmpty
                               ? Padding(
                                   padding: const EdgeInsets.all(AppPadding.p20),
                                   child: SvgPicture.asset(
